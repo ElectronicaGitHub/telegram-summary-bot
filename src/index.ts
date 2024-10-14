@@ -11,9 +11,9 @@ async function main() {
       logger.info(`Server is running on port ${CONSTANTS.SERVER.PORT}`);
     });
 
-    // Initialize the Telegram bot
+    // Initialize the Telegram bot with the new inline keyboard functionality
     telegramService.init();
-    logger.info('Telegram bot initialized');
+    logger.info('Telegram bot initialized with inline keyboard functionality');
   } catch (error) {
     logger.error('Error starting the application:', error);
     process.exit(1);

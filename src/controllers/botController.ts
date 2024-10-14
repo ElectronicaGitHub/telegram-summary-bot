@@ -1,4 +1,4 @@
-import { Message } from 'node-telegram-bot-api';
+import { Message, CallbackQuery } from 'node-telegram-bot-api';
 import { telegramService } from '../services/telegramService';
 import { databaseService } from '../services/databaseService';
 import { User } from '../entities/User';
@@ -34,9 +34,9 @@ export class BotController {
         user.telegramId = userId.toString();
         user.chatId = chatId.toString();
         await databaseService.getUserRepository().save(user);
-        await telegramService.sendMessage(chatId, 'Welcome! Please provide channels to parse in id/channel format.');
+        await telegramService.sendMessage(chatId, 'Welcome! Use /manage_channels to start managing your channels.');
       } else {
-        await telegramService.sendMessage(chatId, 'Welcome back! What would you like to do?');
+        await telegramService.sendMessage(chatId, 'Welcome back! Use /manage_channels to manage your channels.');
       }
     } catch (error) {
       logger.error('Error handling start command:', error);
@@ -44,39 +44,7 @@ export class BotController {
     }
   }
 
-  public async handleAddChannel(msg: Message, match: RegExpExecArray | null): Promise<void> {
-    const chatId = msg.chat.id;
-    const userId = msg.from?.id;
-
-    if (!userId || !match) {
-      logger.error('User ID or match not found in message');
-      return;
-    }
-
-    const [, channelId, channelName] = match;
-
-    try {
-      const user = await databaseService.getUserRepository().findOne({ where: { telegramId: userId.toString() } });
-
-      if (!user) {
-        await telegramService.sendMessage(chatId, 'Please start the bot first with /start command.');
-        return;
-      }
-
-      const channel = new Channel();
-      channel.channelId = channelId;
-      channel.channelName = channelName;
-      channel.user = user;
-
-      await databaseService.getChannelRepository().save(channel);
-      await telegramService.sendMessage(chatId, `Channel ${channelName} (${channelId}) added successfully.`);
-    } catch (error) {
-      logger.error('Error adding channel:', error);
-      await telegramService.sendMessage(chatId, 'An error occurred while adding the channel. Please try again.');
-    }
-  }
-
-  public async handleListChannels(msg: Message): Promise<void> {
+  public async handleManageChannels(msg: Message): Promise<void> {
     const chatId = msg.chat.id;
     const userId = msg.from?.id;
 
@@ -91,29 +59,33 @@ export class BotController {
         relations: ['channels'],
       });
 
-      if (!user || user.channels.length === 0) {
-        await telegramService.sendMessage(chatId, 'You have no channels added yet.');
+      if (!user) {
+        await telegramService.sendMessage(chatId, 'Please start the bot first with /start command.');
         return;
       }
 
-      const channelList = user.channels.map(channel => `${channel.channelName} (${channel.channelId})`).join('\n');
-      await telegramService.sendMessage(chatId, `Your channels:\n${channelList}`);
+      const keyboard = telegramService.createInlineKeyboard([
+        [{ text: 'Add Channel', callback_data: 'add_channel' }],
+        [{ text: 'List Channels', callback_data: 'list_channels' }],
+        [{ text: 'Remove Channel', callback_data: 'remove_channel' }],
+        [{ text: 'Update Channel Settings', callback_data: 'update_channel_settings' }],
+      ]);
+
+      await telegramService.sendMessage(chatId, 'Channel Management Options:', { reply_markup: keyboard });
     } catch (error) {
-      logger.error('Error listing channels:', error);
-      await telegramService.sendMessage(chatId, 'An error occurred while listing channels. Please try again.');
+      logger.error('Error handling manage channels command:', error);
+      await telegramService.sendMessage(chatId, 'An error occurred. Please try again later.');
     }
   }
 
-  public async handleRemoveChannel(msg: Message, match: RegExpExecArray | null): Promise<void> {
-    const chatId = msg.chat.id;
-    const userId = msg.from?.id;
-
-    if (!userId || !match) {
-      logger.error('User ID or match not found in message');
+  public async handleCallbackQuery(query: CallbackQuery): Promise<void> {
+    if (!query.message || !query.from.id) {
+      logger.error('Invalid callback query');
       return;
     }
 
-    const [, channelId] = match;
+    const chatId = query.message.chat.id;
+    const userId = query.from.id;
 
     try {
       const user = await databaseService.getUserRepository().findOne({
@@ -122,23 +94,76 @@ export class BotController {
       });
 
       if (!user) {
-        await telegramService.sendMessage(chatId, 'Please start the bot first with /start command.');
+        await telegramService.answerCallbackQuery(query.id, 'Please start the bot first with /start command.');
         return;
       }
 
-      const channelToRemove = user.channels.find(channel => channel.channelId === channelId);
-
-      if (!channelToRemove) {
-        await telegramService.sendMessage(chatId, `Channel with ID ${channelId} not found.`);
-        return;
+      switch (query.data) {
+        case 'add_channel':
+          await this.handleAddChannel(chatId, user);
+          break;
+        case 'list_channels':
+          await this.handleListChannels(chatId, user);
+          break;
+        case 'remove_channel':
+          await this.handleRemoveChannel(chatId, user);
+          break;
+        case 'update_channel_settings':
+          await this.handleUpdateChannelSettings(chatId, user);
+          break;
+        default:
+          await telegramService.answerCallbackQuery(query.id, 'Invalid option');
       }
-
-      await databaseService.getChannelRepository().remove(channelToRemove);
-      await telegramService.sendMessage(chatId, `Channel ${channelToRemove.channelName} (${channelId}) removed successfully.`);
     } catch (error) {
-      logger.error('Error removing channel:', error);
-      await telegramService.sendMessage(chatId, 'An error occurred while removing the channel. Please try again.');
+      logger.error('Error handling callback query:', error);
+      await telegramService.answerCallbackQuery(query.id, 'An error occurred. Please try again.');
     }
+  }
+
+  private async handleAddChannel(chatId: number, user: User): Promise<void> {
+    await telegramService.sendMessage(chatId, 'Please send the channel ID and name in the format: /add_channel channelId channelName');
+  }
+
+  private async handleListChannels(chatId: number, user: User): Promise<void> {
+    if (user.channels.length === 0) {
+      await telegramService.sendMessage(chatId, 'You have no channels added yet.');
+      return;
+    }
+
+    const channelList = user.channels.map(channel => `${channel.channelName} (${channel.channelId})`).join('\n');
+    await telegramService.sendMessage(chatId, `Your channels:\n${channelList}`);
+  }
+
+  private async handleRemoveChannel(chatId: number, user: User): Promise<void> {
+    if (user.channels.length === 0) {
+      await telegramService.sendMessage(chatId, 'You have no channels to remove.');
+      return;
+    }
+
+    const keyboard = telegramService.createInlineKeyboard(
+      user.channels.map(channel => [{
+        text: `${channel.channelName} (${channel.channelId})`,
+        callback_data: `remove_channel:${channel.id}`
+      }])
+    );
+
+    await telegramService.sendMessage(chatId, 'Select a channel to remove:', { reply_markup: keyboard });
+  }
+
+  private async handleUpdateChannelSettings(chatId: number, user: User): Promise<void> {
+    if (user.channels.length === 0) {
+      await telegramService.sendMessage(chatId, 'You have no channels to update.');
+      return;
+    }
+
+    const keyboard = telegramService.createInlineKeyboard(
+      user.channels.map(channel => [{
+        text: `${channel.channelName} (${channel.channelId})`,
+        callback_data: `update_settings:${channel.id}`
+      }])
+    );
+
+    await telegramService.sendMessage(chatId, 'Select a channel to update settings:', { reply_markup: keyboard });
   }
 
   public async handleViewSummaries(msg: Message): Promise<void> {
@@ -169,48 +194,6 @@ export class BotController {
     } catch (error) {
       logger.error('Error viewing summaries:', error);
       await telegramService.sendMessage(chatId, 'An error occurred while retrieving summaries. Please try again.');
-    }
-  }
-
-  public async handleUpdateChannelSettings(msg: Message, match: RegExpExecArray | null): Promise<void> {
-    const chatId = msg.chat.id;
-    const userId = msg.from?.id;
-
-    if (!userId || !match) {
-      logger.error('User ID or match not found in message');
-      return;
-    }
-
-    const [, channelId, maxLength, frequency, includeHashtags, includeUserMentions] = match;
-
-    try {
-      const user = await databaseService.getUserRepository().findOne({
-        where: { telegramId: userId.toString() },
-        relations: ['channels'],
-      });
-
-      if (!user) {
-        await telegramService.sendMessage(chatId, 'Please start the bot first with /start command.');
-        return;
-      }
-
-      const channel = user.channels.find(ch => ch.channelId === channelId);
-
-      if (!channel) {
-        await telegramService.sendMessage(chatId, `Channel with ID ${channelId} not found.`);
-        return;
-      }
-
-      channel.maxSummaryLength = parseInt(maxLength);
-      channel.summaryFrequency = frequency;
-      channel.includeHashtags = includeHashtags === 'true';
-      channel.includeUserMentions = includeUserMentions === 'true';
-
-      await databaseService.getChannelRepository().save(channel);
-      await telegramService.sendMessage(chatId, `Channel ${channel.channelName} (${channelId}) settings updated successfully.`);
-    } catch (error) {
-      logger.error('Error updating channel settings:', error);
-      await telegramService.sendMessage(chatId, 'An error occurred while updating channel settings. Please try again.');
     }
   }
 }

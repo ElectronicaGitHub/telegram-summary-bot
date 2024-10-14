@@ -52,3 +52,13 @@
 {"level":"info","message":"Telegram bot initialized","timestamp":"2024-10-14T19:09:23.847Z"}
 {"level":"info","message":"Telegram bot initialized","timestamp":"2024-10-14T19:09:23.848Z"}
 {"level":"info","message":"Server is running on port 8000","timestamp":"2024-10-14T19:09:23.849Z"}
+{"level":"info","message":"Connected to database","timestamp":"2024-10-14T19:09:57.437Z"}
+{"level":"info","message":"Application started successfully","timestamp":"2024-10-14T19:09:57.442Z"}
+{"level":"info","message":"Telegram bot initialized","timestamp":"2024-10-14T19:09:57.448Z"}
+{"level":"info","message":"Telegram bot initialized","timestamp":"2024-10-14T19:09:57.448Z"}
+{"level":"info","message":"Server is running on port 8000","timestamp":"2024-10-14T19:09:57.450Z"}
+{"level":"info","message":"Connected to database","timestamp":"2024-10-14T19:10:21.330Z"}
+{"level":"info","message":"Application started successfully","timestamp":"2024-10-14T19:10:21.335Z"}
+{"level":"info","message":"Telegram bot initialized","timestamp":"2024-10-14T19:10:21.340Z"}
+{"level":"info","message":"Telegram bot initialized with inline keyboard functionality","timestamp":"2024-10-14T19:10:21.340Z"}
+{"level":"info","message":"Server is running on port 8000","timestamp":"2024-10-14T19:10:21.342Z"}

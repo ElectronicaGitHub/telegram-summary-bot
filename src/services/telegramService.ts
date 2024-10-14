@@ -8,6 +8,7 @@ class TelegramService {
   public init(): void {
     this.bot = new TelegramBot(CONSTANTS.TELEGRAM.BOT_TOKEN, { polling: true });
     this.setupCommandHandlers();
+    this.setupCallbackQueryHandler();
     logger.info('Telegram bot initialized');
   }
 
@@ -21,41 +22,61 @@ class TelegramService {
       botController.handleStart(msg);
     });
 
-    this.bot.onText(/\/add_channel (.+) (.+)/, (msg, match) => {
+    this.bot.onText(/\/manage_channels/, (msg) => {
       const botController = require('../controllers/botController').botController;
-      botController.handleAddChannel(msg, match);
-    });
-
-    this.bot.onText(/\/list_channels/, (msg) => {
-      const botController = require('../controllers/botController').botController;
-      botController.handleListChannels(msg);
-    });
-
-    this.bot.onText(/\/remove_channel (.+)/, (msg, match) => {
-      const botController = require('../controllers/botController').botController;
-      botController.handleRemoveChannel(msg, match);
+      botController.handleManageChannels(msg);
     });
 
     this.bot.onText(/\/view_summaries/, (msg) => {
       const botController = require('../controllers/botController').botController;
       botController.handleViewSummaries(msg);
     });
+  }
 
-    this.bot.onText(/\/update_channel_settings (.+) (\d+) (hourly|daily|weekly) (true|false) (true|false)/, (msg, match) => {
+  private setupCallbackQueryHandler(): void {
+    if (!this.bot) {
+      throw new Error('Telegram bot not initialized');
+    }
+
+    this.bot.on('callback_query', (query) => {
       const botController = require('../controllers/botController').botController;
-      botController.handleUpdateChannelSettings(msg, match);
+      botController.handleCallbackQuery(query);
     });
   }
 
-  public async sendMessage(chatId: number | string, text: string): Promise<void> {
+  public async sendMessage(chatId: number | string, text: string, options?: TelegramBot.SendMessageOptions): Promise<void> {
     if (!this.bot) {
       throw new Error('Telegram bot not initialized');
     }
 
     try {
-      await this.bot.sendMessage(chatId, text);
+      await this.bot.sendMessage(chatId, text, options);
     } catch (error) {
       logger.error('Error sending message:', error);
+    }
+  }
+
+  public async editMessageText(text: string, options: TelegramBot.EditMessageTextOptions): Promise<void> {
+    if (!this.bot) {
+      throw new Error('Telegram bot not initialized');
+    }
+
+    try {
+      await this.bot.editMessageText(text, options);
+    } catch (error) {
+      logger.error('Error editing message:', error);
+    }
+  }
+
+  public async answerCallbackQuery(callbackQueryId: string, text?: string): Promise<void> {
+    if (!this.bot) {
+      throw new Error('Telegram bot not initialized');
+    }
+
+    try {
+      await this.bot.answerCallbackQuery(callbackQueryId, { text });
+    } catch (error) {
+      logger.error('Error answering callback query:', error);
     }
   }
 
@@ -66,6 +87,12 @@ class TelegramService {
       logger.error('Error fetching channel messages:', error);
       return [];
     }
+  }
+
+  public createInlineKeyboard(buttons: TelegramBot.InlineKeyboardButton[][]): TelegramBot.InlineKeyboardMarkup {
+    return {
+      inline_keyboard: buttons,
+    };
   }
 }
 
