@@ -3,14 +3,19 @@ import { CONSTANTS } from '../config/consts';
 import { logger } from '../utils/logger';
 
 class TelegramService {
-  private bot: TelegramBot;
+  private bot: TelegramBot | null = null;
 
-  constructor() {
+  public init(): void {
     this.bot = new TelegramBot(CONSTANTS.TELEGRAM.BOT_TOKEN, { polling: true });
     this.setupCommandHandlers();
+    logger.info('Telegram bot initialized');
   }
 
   private setupCommandHandlers(): void {
+    if (!this.bot) {
+      throw new Error('Telegram bot not initialized');
+    }
+
     this.bot.onText(/\/start/, (msg) => {
       const botController = require('../controllers/botController').botController;
       botController.handleStart(msg);
@@ -38,6 +43,10 @@ class TelegramService {
   }
 
   public async sendMessage(chatId: number | string, text: string): Promise<void> {
+    if (!this.bot) {
+      throw new Error('Telegram bot not initialized');
+    }
+
     try {
       await this.bot.sendMessage(chatId, text);
     } catch (error) {
