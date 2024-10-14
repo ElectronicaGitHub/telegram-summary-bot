@@ -1,0 +1,30 @@
+{
+  "name": "telegram-channel-summarizer",
+  "version": "1.0.0",
+  "description": "A Node.js TypeScript Telegram bot for channel summarization with user data persistence and OpenAI-powered summaries",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "node dist/index.js",
+    "build": "tsc",
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts"
+  },
+  "dependencies": {
+    "axios": "^0.27.2",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1",
+    "node-cron": "^3.0.3",
+    "node-telegram-bot-api": "^0.58.0",
+    "openai": "^3.3.0",
+    "pg": "^8.13.0",
+    "typeorm": "^0.3.20",
+    "winston": "^3.15.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^17.0.45",
+    "@types/node-cron": "^3.0.11",
+    "@types/node-telegram-bot-api": "^0.57.7",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^4.9.5"
+  }
+}
