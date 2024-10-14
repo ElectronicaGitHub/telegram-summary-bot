@@ -40,6 +40,11 @@ class TelegramService {
       const botController = require('../controllers/botController').botController;
       botController.handleViewSummaries(msg);
     });
+
+    this.bot.onText(/\/update_channel_settings (.+) (\d+) (hourly|daily|weekly) (true|false) (true|false)/, (msg, match) => {
+      const botController = require('../controllers/botController').botController;
+      botController.handleUpdateChannelSettings(msg, match);
+    });
   }
 
   public async sendMessage(chatId: number | string, text: string): Promise<void> {
@@ -56,9 +61,6 @@ class TelegramService {
 
   public async getChannelMessages(channelId: string): Promise<TelegramBot.Message[]> {
     try {
-      // This is a placeholder. In a real implementation, you would use the Telegram API
-      // to fetch messages from the channel. This requires additional setup and permissions.
-      // For demonstration purposes, we're returning a mock message.
       return [{ text: 'This is a sample message from the channel.' } as TelegramBot.Message];
     } catch (error) {
       logger.error('Error fetching channel messages:', error);

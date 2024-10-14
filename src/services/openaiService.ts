@@ -12,19 +12,24 @@ class OpenAIService {
     this.openai = new OpenAIApi(configuration);
   }
 
-  public async generateSummary(content: string): Promise<string> {
+  public async generateSummary(content: string, maxLength: number): Promise<string> {
     try {
       const response = await this.openai.createChatCompletion({
         model: 'gpt-4o', // Using gpt-4o for complex summarization tasks
         messages: [
-          { role: 'system', content: 'You are a helpful assistant that summarizes text.' },
+          { role: 'system', content: `You are a helpful assistant that summarizes text. Please provide a summary of no more than ${maxLength} characters.` },
           { role: 'user', content: `Please summarize the following content:\n\n${content}` }
         ],
-        max_tokens: 150,
+        max_tokens: Math.floor(maxLength / 4), // Approximate token count based on characters
       });
 
       if (response.data.choices && response.data.choices.length > 0 && response.data.choices[0].message) {
-        return response.data.choices[0].message.content.trim();
+        let summary = response.data.choices[0].message.content.trim();
+        // Ensure the summary doesn't exceed the maxLength
+        if (summary.length > maxLength) {
+          summary = summary.substring(0, maxLength);
+        }
+        return summary;
       } else {
         throw new Error('No summary generated');
       }

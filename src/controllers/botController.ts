@@ -171,6 +171,48 @@ export class BotController {
       await telegramService.sendMessage(chatId, 'An error occurred while retrieving summaries. Please try again.');
     }
   }
+
+  public async handleUpdateChannelSettings(msg: Message, match: RegExpExecArray | null): Promise<void> {
+    const chatId = msg.chat.id;
+    const userId = msg.from?.id;
+
+    if (!userId || !match) {
+      logger.error('User ID or match not found in message');
+      return;
+    }
+
+    const [, channelId, maxLength, frequency, includeHashtags, includeUserMentions] = match;
+
+    try {
+      const user = await databaseService.getUserRepository().findOne({
+        where: { telegramId: userId.toString() },
+        relations: ['channels'],
+      });
+
+      if (!user) {
+        await telegramService.sendMessage(chatId, 'Please start the bot first with /start command.');
+        return;
+      }
+
+      const channel = user.channels.find(ch => ch.channelId === channelId);
+
+      if (!channel) {
+        await telegramService.sendMessage(chatId, `Channel with ID ${channelId} not found.`);
+        return;
+      }
+
+      channel.maxSummaryLength = parseInt(maxLength);
+      channel.summaryFrequency = frequency;
+      channel.includeHashtags = includeHashtags === 'true';
+      channel.includeUserMentions = includeUserMentions === 'true';
+
+      await databaseService.getChannelRepository().save(channel);
+      await telegramService.sendMessage(chatId, `Channel ${channel.channelName} (${channelId}) settings updated successfully.`);
+    } catch (error) {
+      logger.error('Error updating channel settings:', error);
+      await telegramService.sendMessage(chatId, 'An error occurred while updating channel settings. Please try again.');
+    }
+  }
 }
 
 export const botController = BotController.getInstance();

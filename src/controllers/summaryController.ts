@@ -24,8 +24,17 @@ export class SummaryController {
         const messages = await telegramService.getChannelMessages(channel.channelId);
         
         if (messages.length > 0) {
-          const content = messages.map(msg => msg.text).join('\n');
-          const summary = await openaiService.generateSummary(content);
+          let content = messages.map(msg => msg.text).join('\n');
+
+          // Apply channel-specific settings
+          if (!channel.includeHashtags) {
+            content = content.replace(/#\w+/g, '');
+          }
+          if (!channel.includeUserMentions) {
+            content = content.replace(/@\w+/g, '');
+          }
+
+          const summary = await openaiService.generateSummary(content, channel.maxSummaryLength);
 
           const newSummary = new Summary();
           newSummary.channelName = channel.channelName;

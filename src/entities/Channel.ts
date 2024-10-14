@@ -12,6 +12,18 @@ export class Channel {
   @Column()
   channelName!: string;
 
+  @Column({ default: 150 })
+  maxSummaryLength!: number;
+
+  @Column({ default: 'daily' })
+  summaryFrequency!: string;
+
+  @Column({ default: false })
+  includeHashtags!: boolean;
+
+  @Column({ default: false })
+  includeUserMentions!: boolean;
+
   @ManyToOne(() => User, user => user.channels)
   user!: User;
 }
