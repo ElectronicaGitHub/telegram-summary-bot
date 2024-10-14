@@ -1,12 +1,12 @@
 import TelegramBot from 'node-telegram-bot-api';
-import { config } from '../config/config';
+import { CONSTANTS } from '../config/consts';
 import { logger } from '../utils/logger';
 
 class TelegramService {
   private bot: TelegramBot;
 
   constructor() {
-    this.bot = new TelegramBot(config.telegram.botToken, { polling: true });
+    this.bot = new TelegramBot(CONSTANTS.TELEGRAM.BOT_TOKEN, { polling: true });
     this.setupCommandHandlers();
   }
 

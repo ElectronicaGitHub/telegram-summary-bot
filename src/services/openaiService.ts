@@ -1,5 +1,5 @@
 import { Configuration, OpenAIApi } from 'openai';
-import { config } from '../config/config';
+import { CONSTANTS } from '../config/consts';
 import { logger } from '../utils/logger';
 
 class OpenAIService {
@@ -7,7 +7,7 @@ class OpenAIService {
 
   constructor() {
     const configuration = new Configuration({
-      apiKey: config.openai.apiKey,
+      apiKey: CONSTANTS.OPENAI.API_KEY,
     });
     this.openai = new OpenAIApi(configuration);
   }

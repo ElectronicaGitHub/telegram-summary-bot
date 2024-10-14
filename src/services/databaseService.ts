@@ -2,7 +2,7 @@ import { createConnection, Connection, Repository } from 'typeorm';
 import { User } from '../entities/User';
 import { Channel } from '../entities/Channel';
 import { Summary } from '../entities/Summary';
-import { config } from '../config/config';
+import { CONSTANTS } from '../config/consts';
 import { logger } from '../utils/logger';
 
 class DatabaseService {
@@ -12,14 +12,17 @@ class DatabaseService {
     try {
       this.connection = await createConnection({
         type: 'postgres',
-        host: config.database.host,
-        port: config.database.port,
-        username: config.database.username,
-        password: config.database.password,
-        database: config.database.database,
+        host: CONSTANTS.DATABASE.HOST,
+        port: CONSTANTS.DATABASE.PORT,
+        username: CONSTANTS.DATABASE.USERNAME,
+        password: CONSTANTS.DATABASE.PASSWORD,
+        database: CONSTANTS.DATABASE.DATABASE,
         entities: [User, Channel, Summary],
         synchronize: true,
         logging: false,
+        ssl: {
+          rejectUnauthorized: false
+        }
       });
       logger.info('Connected to database');
     } catch (error) {
