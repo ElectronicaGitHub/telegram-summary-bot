@@ -3,12 +3,13 @@ import { CONSTANTS } from '../config/consts';
 import { logger } from '../utils/logger';
 import { botController } from '../controllers/botController';
 import { mtprotoService } from './mtprotoService';
-import input from 'input';
+import * as readline from 'readline';
 import * as fs from 'fs';
 import * as path from 'path';
 
 class TelegramService {
   private bot: TelegramBot | null = null;
+  private readonly MAX_AUTH_RETRIES = 3;
 
   public async init(): Promise<void> {
     try {
@@ -44,29 +45,32 @@ class TelegramService {
   }
 
   private async authenticateMTProto(): Promise<string> {
-    console.log('=== MTProto Authentication Process ===');
+    console.log('\n=== MTProto Authentication Process ===');
     console.log('Please follow the steps below to authenticate your Telegram account:');
-    let retries = 0;
-    const maxRetries = 3;
+    console.log('If you don\'t see any prompts in the console, please check your terminal or command prompt window.');
+    console.log('You may need to scroll up to see the prompts.\n');
 
-    while (retries < maxRetries) {
+    let retries = 0;
+
+    while (retries < this.MAX_AUTH_RETRIES) {
       try {
-        console.log(`\nAuthentication attempt ${retries + 1} of ${maxRetries}`);
+        console.log(`\nAuthentication attempt ${retries + 1} of ${this.MAX_AUTH_RETRIES}`);
         const sessionString = await mtprotoService.authenticate({
           phoneNumber: async () => {
             console.log('\nStep 1: Enter your phone number');
             console.log('Please use the international format (e.g., +1234567890)');
-            return await input.text('Phone number: ');
+            return await this.getUserInput('Phone number: ');
           },
           password: async () => {
             console.log('\nStep 2: Enter your 2FA password (if enabled)');
             console.log('If you don\'t have 2FA enabled, just press Enter');
-            return await input.password('2FA password (or press Enter): ');
+            return await this.getUserInput('2FA password (or press Enter): ', true);
           },
           phoneCode: async () => {
             console.log('\nStep 3: Enter the authentication code');
             console.log('You should receive an authentication code via Telegram or SMS');
-            return await input.text('Authentication code: ');
+            console.log('If you don\'t receive the code, please check your Telegram app or SMS messages');
+            return await this.getUserInput('Authentication code: ');
           },
           onError: (err) => {
             console.error('\nError during authentication:', err.message);
@@ -83,15 +87,49 @@ class TelegramService {
         console.error(`\nAuthentication attempt ${retries + 1} failed:`, error.message);
         logger.error(`Authentication attempt ${retries + 1} failed:`, error);
         retries++;
-        if (retries < maxRetries) {
-          console.log(`\nRetrying authentication (attempt ${retries + 1})...`);
+        if (retries < this.MAX_AUTH_RETRIES) {
+          console.log(`\nRetrying authentication in 5 seconds... (attempt ${retries + 1} of ${this.MAX_AUTH_RETRIES})`);
+          await new Promise(resolve => setTimeout(resolve, 5000));
         }
       }
     }
 
     console.error('\n=== Authentication Failed ===');
-    console.error('Failed to authenticate after multiple attempts. Please try again later.');
-    throw new Error('Failed to authenticate MTProto client after multiple attempts');
+    console.error(`Failed to authenticate after ${this.MAX_AUTH_RETRIES} attempts.`);
+    console.error('Please check your internet connection and try again later.');
+    console.error('If the problem persists, contact support for assistance.');
+    throw new Error(`Failed to authenticate MTProto client after ${this.MAX_AUTH_RETRIES} attempts`);
+  }
+
+  private getUserInput(prompt: string, isPassword: boolean = false): Promise<string> {
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout
+    });
+
+    return new Promise((resolve) => {
+      rl.question(prompt, (answer) => {
+        rl.close();
+        resolve(answer);
+      });
+
+      if (isPassword) {
+        rl.stdoutMuted = true;
+        process.stdin.on('data', (char) => {
+          char = char + '';
+          switch (char) {
+            case '\n':
+            case '\r':
+            case '\u0004':
+              process.stdin.pause();
+              break;
+            default:
+              process.stdout.write('*');
+              break;
+          }
+        });
+      }
+    });
   }
 
   private loadSessionString(): string | null {
