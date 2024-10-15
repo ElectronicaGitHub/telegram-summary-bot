@@ -303,3 +303,28 @@
 {"level":"info","message":"Application started successfully","timestamp":"2024-10-15T12:28:02.657Z"}
 {"level":"info","message":"No valid session string found. Starting authentication process.","timestamp":"2024-10-15T12:28:02.661Z"}
 {"level":"info","message":"Server is running on port 8000","timestamp":"2024-10-15T12:28:02.666Z"}
+{"level":"warn","message":"TELEGRAM_SESSION_STRING is not set. The MTProto client may need to be authenticated.","timestamp":"2024-10-15T12:56:43.700Z"}
+{"level":"info","message":"Connected to database","timestamp":"2024-10-15T12:56:48.936Z"}
+{"level":"info","message":"Application started successfully","timestamp":"2024-10-15T12:56:48.940Z"}
+{"level":"info","message":"No valid session string found. Starting authentication process.","timestamp":"2024-10-15T12:56:48.945Z"}
+{"level":"info","message":"Server is running on port 8000","timestamp":"2024-10-15T12:56:48.950Z"}
+{"level":"warn","message":"TELEGRAM_SESSION_STRING is not set. The MTProto client may need to be authenticated.","timestamp":"2024-10-15T12:56:49.523Z"}
+{"level":"info","message":"Connected to database","timestamp":"2024-10-15T12:56:54.051Z"}
+{"level":"info","message":"Application started successfully","timestamp":"2024-10-15T12:56:54.056Z"}
+{"level":"info","message":"No valid session string found. Starting authentication process.","timestamp":"2024-10-15T12:56:54.061Z"}
+{"level":"warn","message":"TELEGRAM_SESSION_STRING is not set. The MTProto client may need to be authenticated.","timestamp":"2024-10-15T12:57:14.120Z"}
+{"level":"warn","message":"TELEGRAM_SESSION_STRING is not set. The MTProto client may need to be authenticated.","timestamp":"2024-10-15T12:57:23.099Z"}
+{"level":"info","message":"Connected to database","timestamp":"2024-10-15T12:57:27.564Z"}
+{"level":"info","message":"Application started successfully","timestamp":"2024-10-15T12:57:27.568Z"}
+{"level":"info","message":"No valid session string found. Starting authentication process.","timestamp":"2024-10-15T12:57:27.573Z"}
+{"level":"info","message":"Server is running on port 8000","timestamp":"2024-10-15T12:57:27.578Z"}
+{"level":"info","message":"Running scheduled summary generation","timestamp":"2024-10-15T13:00:00.708Z"}
+{"level":"warn","message":"TELEGRAM_SESSION_STRING is not set. The MTProto client may need to be authenticated.","timestamp":"2024-10-15T13:00:02.285Z"}
+{"level":"warn","message":"TELEGRAM_SESSION_STRING is not set. The MTProto client may need to be authenticated.","timestamp":"2024-10-15T13:00:04.995Z"}
+{"level":"info","message":"Connected to database","timestamp":"2024-10-15T13:00:06.756Z"}
+{"level":"info","message":"Application started successfully","timestamp":"2024-10-15T13:00:06.761Z"}
+{"level":"info","message":"No valid session string found. Starting authentication process.","timestamp":"2024-10-15T13:00:06.766Z"}
+{"level":"info","message":"Server is running on port 8000","timestamp":"2024-10-15T13:00:06.771Z"}
+{"level":"info","message":"Connected to database","timestamp":"2024-10-15T13:00:09.492Z"}
+{"level":"info","message":"Application started successfully","timestamp":"2024-10-15T13:00:09.497Z"}
+{"level":"info","message":"No valid session string found. Starting authentication process.","timestamp":"2024-10-15T13:00:09.501Z"}

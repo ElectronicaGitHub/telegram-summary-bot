@@ -44,33 +44,53 @@ class TelegramService {
   }
 
   private async authenticateMTProto(): Promise<string> {
+    console.log('=== MTProto Authentication Process ===');
+    console.log('Please follow the steps below to authenticate your Telegram account:');
     let retries = 0;
     const maxRetries = 3;
 
     while (retries < maxRetries) {
       try {
+        console.log(`\nAuthentication attempt ${retries + 1} of ${maxRetries}`);
         const sessionString = await mtprotoService.authenticate({
-          phoneNumber: async () => await input.text('Please enter your phone number: '),
-          password: async () => await input.password('Please enter your 2FA password (if enabled): '),
-          phoneCode: async () => await input.text('Please enter the code you received: '),
+          phoneNumber: async () => {
+            console.log('\nStep 1: Enter your phone number');
+            console.log('Please use the international format (e.g., +1234567890)');
+            return await input.text('Phone number: ');
+          },
+          password: async () => {
+            console.log('\nStep 2: Enter your 2FA password (if enabled)');
+            console.log('If you don\'t have 2FA enabled, just press Enter');
+            return await input.password('2FA password (or press Enter): ');
+          },
+          phoneCode: async () => {
+            console.log('\nStep 3: Enter the authentication code');
+            console.log('You should receive an authentication code via Telegram or SMS');
+            return await input.text('Authentication code: ');
+          },
           onError: (err) => {
+            console.error('\nError during authentication:', err.message);
             logger.error('Error during MTProto authentication:', err);
             throw err;
           },
         });
 
         this.saveSessionString(sessionString);
+        console.log('\n=== Authentication Successful ===');
         logger.info('MTProto client authenticated successfully');
         return sessionString;
       } catch (error) {
+        console.error(`\nAuthentication attempt ${retries + 1} failed:`, error.message);
         logger.error(`Authentication attempt ${retries + 1} failed:`, error);
         retries++;
         if (retries < maxRetries) {
-          logger.info(`Retrying authentication (attempt ${retries + 1})...`);
+          console.log(`\nRetrying authentication (attempt ${retries + 1})...`);
         }
       }
     }
 
+    console.error('\n=== Authentication Failed ===');
+    console.error('Failed to authenticate after multiple attempts. Please try again later.');
     throw new Error('Failed to authenticate MTProto client after multiple attempts');
   }
 
@@ -152,12 +172,11 @@ About: ${channelInfo.about || 'N/A'}`;
       }
     });
 
-    // New command to fetch messages from a channel
     this.bot.onText(/\/fetch_messages (.+)/, async (msg, match) => {
       if (match && match[1]) {
         const channelId = match[1];
         try {
-          const messages = await this.getChannelMessages(channelId, 10); // Fetch last 10 messages
+          const messages = await this.getChannelMessages(channelId, 10);
           if (messages.length > 0) {
             const messageText = messages.map(m => `[${new Date(m.date * 1000).toLocaleString()}] ${m.message}`).join('\n\n');
             await this.sendMessage(msg.chat.id, `Last 10 messages from channel ${channelId}:\n\n${messageText}`);
