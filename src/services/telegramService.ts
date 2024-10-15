@@ -1,4 +1,5 @@
 import TelegramBot from 'node-telegram-bot-api';
+import axios from 'axios';
 import { CONSTANTS } from '../config/consts';
 import { logger } from '../utils/logger';
 import { botController } from '../controllers/botController';
@@ -77,9 +78,20 @@ class TelegramService {
     }
   }
 
-  public async getChannelMessages(channelId: string): Promise<TelegramBot.Message[]> {
+  public async getChannelMessages(channelId: string, limit: number = 100): Promise<TelegramBot.Message[]> {
     try {
-      return [{ text: 'This is a sample message from the channel.' } as TelegramBot.Message];
+      const apiUrl = `https://api.telegram.org/bot${CONSTANTS.TELEGRAM.BOT_TOKEN}/getChatHistory`;
+      const response = await axios.post(apiUrl, {
+        chat_id: channelId,
+        limit: limit
+      });
+
+      if (response.data && response.data.ok && response.data.result) {
+        return response.data.result;
+      } else {
+        logger.error('Error fetching channel messages:', response.data);
+        return [];
+      }
     } catch (error) {
       logger.error('Error fetching channel messages:', error);
       return [];

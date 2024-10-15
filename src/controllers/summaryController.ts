@@ -21,10 +21,10 @@ export class SummaryController {
       const channels = await databaseService.getChannelRepository().find({ relations: ['user'] });
 
       for (const channel of channels) {
-        const messages = await telegramService.getChannelMessages(channel.channelId);
+        const messages = await telegramService.getChannelMessages(channel.channelId, 100); // Fetch up to 100 messages
         
         if (messages.length > 0) {
-          let content = messages.map(msg => msg.text).join('\n');
+          let content = messages.map(msg => msg.text).filter(Boolean).join('\n');
 
           // Apply channel-specific settings
           if (!channel.includeHashtags) {
@@ -47,6 +47,8 @@ export class SummaryController {
             channel.user.chatId,
             `New summary for ${channel.channelName}:\n\n${summary}`
           );
+        } else {
+          logger.info(`No new messages to summarize for channel: ${channel.channelName}`);
         }
       }
     } catch (error) {
