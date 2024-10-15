@@ -3,6 +3,7 @@ import cron from 'node-cron';
 import { databaseService } from './services/databaseService';
 import { summaryController } from './controllers/summaryController';
 import { logger } from './utils/logger';
+import { CONSTANTS } from './config/consts';
 
 export const app = express();
 
@@ -24,6 +25,11 @@ export const startApp = async () => {
     cron.schedule('0 * * * *', async () => {
       logger.info('Running scheduled summary generation');
       await summaryController.generateSummaries();
+    });
+
+    const port = CONSTANTS.SERVER.PORT;
+    app.listen(port, '0.0.0.0', () => {
+      logger.info(`Server is running on port ${port}`);
     });
 
     logger.info('Application started successfully');
