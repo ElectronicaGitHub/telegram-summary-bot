@@ -1,6 +1,7 @@
 import TelegramBot from 'node-telegram-bot-api';
 import { CONSTANTS } from '../config/consts';
 import { logger } from '../utils/logger';
+import { botController } from '../controllers/botController';
 
 class TelegramService {
   private bot: TelegramBot | null = null;
@@ -18,17 +19,14 @@ class TelegramService {
     }
 
     this.bot.onText(/\/start/, (msg) => {
-      const botController = require('../controllers/botController').botController;
       botController.handleStart(msg);
     });
 
     this.bot.onText(/\/manage_channels/, (msg) => {
-      const botController = require('../controllers/botController').botController;
       botController.handleManageChannels(msg);
     });
 
     this.bot.onText(/\/view_summaries/, (msg) => {
-      const botController = require('../controllers/botController').botController;
       botController.handleViewSummaries(msg);
     });
   }
@@ -39,7 +37,6 @@ class TelegramService {
     }
 
     this.bot.on('callback_query', (query) => {
-      const botController = require('../controllers/botController').botController;
       botController.handleCallbackQuery(query);
     });
   }
