@@ -62,3 +62,4 @@
 {"level":"info","message":"Telegram bot initialized","timestamp":"2024-10-14T19:10:21.340Z"}
 {"level":"info","message":"Telegram bot initialized with inline keyboard functionality","timestamp":"2024-10-14T19:10:21.340Z"}
 {"level":"info","message":"Server is running on port 8000","timestamp":"2024-10-14T19:10:21.342Z"}
+{"level":"info","message":"Running scheduled summary generation","timestamp":"2024-10-14T20:00:00.074Z"}
